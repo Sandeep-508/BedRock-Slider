@@ -27,17 +27,22 @@ const VerticalSlider = () => {
             const slides = swiperInstance.slides;
             const activeIndex = swiperInstance.activeIndex;
             const totalSlides = slides.length;
+            const slidesPerView = swiperInstance.params.slidesPerView;
 
             slides.forEach((slide, index) => {
                 const slideElement = slide.querySelector('.slide-content');
                 if (!slideElement) return;
 
                 const distance = Math.min(Math.abs(index - activeIndex), totalSlides - Math.abs(index - activeIndex));
-                const maxDistance = Math.floor(swiperInstance.params.slidesPerView / 2);
-                const opacity = Math.max(0, 1 - (distance / maxDistance));
+                const maxDistance = Math.floor(slidesPerView / 2);
+                const normalizedDistance = distance / maxDistance;
 
+                const rotateX = normalizedDistance * 30;
+                const scale = 1 - (normalizedDistance * 0.2);
+                const opacity = Math.max(0, 1 - normalizedDistance * 0.5);
+
+                slideElement.style.transform = `rotateX(${rotateX}deg) scale(${scale})`;
                 slideElement.style.opacity = opacity.toFixed(2);
-
             });
         };
 
@@ -55,15 +60,15 @@ const VerticalSlider = () => {
     const getSlidesPerView = () => {
         if (typeof window !== 'undefined') {
             if (window.innerWidth >= 1920) return 13;
-            if (window.innerWidth >= 1280) return 11;
+            if (window.innerWidth >= 1280) return 9;
             return 9;
         }
         return 9;
     };
 
     return (
-        <div className="h-screen w-full bg-black flex items-center justify-center">
-            <div className="flex items-center justify-center h-full w-full max-w-full mx-auto px-4">
+        <div className="h-screen w-full bg-black flex items-center justify-center overflow-hidden">
+            <div className="flex items-center justify-center h-full w-full max-w-full mx-auto px-4" style={{ perspective: '1000px' }}>
                 <Swiper
                     ref={swiperRef}
                     direction="vertical"
@@ -77,14 +82,13 @@ const VerticalSlider = () => {
                     loopAdditionalSlides={originalSlides.length}
                     speed={800}
                     className="h-full w-full"
-                    style={{ perspective: '1000px' }}
                 >
                     {slides.map((slide, index) => (
                         <SwiperSlide key={index} className="flex items-center justify-center">
                             {({ isActive }) => (
                                 <div
                                     className={`
-                                        transition-all duration-300
+                                        transition-transform duration-300
                                         slide-content
                                         text-white
                                         flex items-center justify-center
